@@ -1,27 +1,39 @@
+# https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
+if (APPLE)
+  SET(XTENSA_URL "https://dl.espressif.com/dl/xtensa-esp32-elf-gcc8_2_0-esp32-2019r1-rc2-macos.tar.xz")
+elseif (WIN32)
+  SET(XTENSA_URL "https://dl.espressif.com/dl/xtensa-esp32-elf-gcc8_2_0-esp32-2019r1-rc2-win32.tar.xz")
+else()
+  SET(XTENSA_URL "https://dl.espressif.com/dl/xtensa-esp32-elf-gcc8_2_0-esp32-2019r1-rc2-linux-amd64.tar.xz")
+endif()
+
+# gcc and other compiler tools
 FetchContent_Declare(
   xtensa-esp32-elf
-  URL      https://dl.espressif.com/dl/xtensa-esp32-elf-gcc8_2_0-esp32-2019r1-rc2-macos.tar.xz
-  URL_HASH SHA256=fac993b4b730b648b038e6393de74940d61a611788b8653bdb8ea5e850a28348
+  URL      ${XTENSA_URL}
 )
 FetchContent_Populate(xtensa-esp32-elf)
+# Path so esp-idf toolchain can find compilers
+# Done through sdkconfig file
 LIST(APPEND CMAKE_PROGRAM_PATH ${xtensa-esp32-elf_SOURCE_DIR}/bin)
 
+# esp-idf source
 FetchContent_Declare(
   espressifidf
+  #URL https://github.com/espressif/esp-idf/archive/master.zip
   GIT_REPOSITORY https://github.com/espressif/esp-idf
-  GIT_TAG v4.1-dev
+  GIT_TAG v4.0-beta1
 )
-
-if(NOT espressifidf_POPULATED)
-  # Fetch the content using previously declared details
-  FetchContent_Populate(espressifidf)
-endif()
+FetchContent_Populate(espressifidf)
 set(ENV{IDF_PATH} ${espressifidf_SOURCE_DIR})
 
 include(${espressifidf_SOURCE_DIR}/tools/cmake/project.cmake)
-project(espproj)
+
+project(espproj
+  VERSION 0.0.1
+  LANGUAGES C CXX ASM)
